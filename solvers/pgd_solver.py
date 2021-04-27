@@ -30,13 +30,16 @@ class Solver(BaseSolver):
         t_old = 1.
 
         for _ in range(n_iter):
-            signal = signal = np.concatenate([np.array([np.convolve(w_k, x_k, mode="full")
-                                                       for w_k, x_k in zip(w[:, :, i], self.X)]).sum(axis=0).reshape(-1, 1)
-                                             for i in range(w.shape[2])], axis=1)
+            signal = signal = np.concatenate(
+                [np.array([np.convolve(w_k, x_k, mode="full")
+                           for w_k, x_k in zip(w[:, :, i], self.X)]
+                          ).sum(axis=0).reshape(-1, 1)
+                 for i in range(w.shape[2])], axis=1)
             diff = signal - self.y
-            corr = np.concatenate([np.array([np.correlate(diff[:, i], d_k, mode="valid")
-                                            for d_k in self.X])[:, :, None]
-                                  for i in range(diff.shape[1])], axis=2)
+            corr = np.concatenate(
+                [np.array([np.correlate(diff[:, i], d_k, mode="valid")
+                           for d_k in self.X])[:, :, None]
+                 for i in range(diff.shape[1])], axis=2)
             w -= step_size * corr
             w = np.maximum(0, np.abs(w) - mu)
             # w = np.sign(w) * np.maximum(0, np.abs(w) - mu)

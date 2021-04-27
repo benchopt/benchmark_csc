@@ -31,8 +31,11 @@ class Objective(BaseObjective):
 
     def compute(self, theta):
         "Compute the objective value given the output x of  a solver."
-        signal = np.concatenate([np.array([np.convolve(theta_k, d_k, mode="full")
-                                          for theta_k, d_k in zip(theta[:, :, i], self.X)]).sum(axis=0).reshape(-1, 1)
-                                for i in range(theta.shape[2])], axis=1)
+        signal = np.concatenate(
+            [np.array(
+                [np.convolve(theta_k, d_k, mode="full")
+                 for theta_k, d_k in zip(theta[:, :, i], self.X)]
+                ).sum(axis=0).reshape(-1, 1)
+             for i in range(theta.shape[2])], axis=1)
         diff = self.y - signal
         return .5 * (diff * diff).sum() + self.lmbd * abs(theta).sum()

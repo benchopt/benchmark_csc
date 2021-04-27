@@ -11,10 +11,10 @@ class Solver(BaseSolver):
     name = 'alphacsc'  # alphacsc
 
     install_cmd = 'conda'
-    requirements = ['pip:alphacsc']
+    requirements = ['pip:numpy', 'pip:cython', 'pip:alphacsc']
 
     # Store the information to compute the objective. The parameters of this
-    # function are the eys of the dictionary obtained when calling
+    # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
     def set_objective(self, X, y, lmbd):
         self.X, self.y, self.lmbd = X, y, lmbd
