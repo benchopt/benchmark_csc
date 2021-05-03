@@ -37,11 +37,13 @@ class Dataset(BaseDataset):
                                  self.n_samples))
         theta = theta > 1 - self.sparsity
 
-        y = np.concatenate(
-            [np.array([np.convolve(theta_k, d_k, mode="full")
-                       for theta_k, d_k in zip(theta[:, :, i], X)]
-                      ).sum(axis=0).reshape(-1, 1)
-             for i in range(theta.shape[2])], axis=1)
+        y = np.concatenate([
+            np.sum([
+                np.convolve(theta_k, d_k, mode="full")
+                for theta_k, d_k in zip(theta[:, :, i], X)
+            ], axis=0).reshape(-1, 1)
+            for i in range(theta.shape[2])
+        ], axis=1)
         y += rng.normal(scale=self.noise, size=y.shape)
 
         data = dict(X=X, y=y)

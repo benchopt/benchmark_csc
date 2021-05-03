@@ -1,11 +1,15 @@
-import numpy as np
-
-from scipy.fft import fft
 from benchopt import BaseSolver
+from benchopt import safe_import_context
+
+with safe_import_context() as import_ctx:
+    import numpy as np
+    from scipy.fft import fft
 
 
 class Solver(BaseSolver):
     name = 'Python-PGD'  # proximal gradient, optionally accelerated
+
+    stop_strategy = "callback"
 
     # Store the information to compute the objective. The parameters of this
     # function are the eys of the dictionary obtained when calling
@@ -14,7 +18,7 @@ class Solver(BaseSolver):
         self.X, self.y, self.lmbd = X, y, lmbd
 
     # Main function of the solver, which computes a solution estimate.
-    def run(self, n_iter):
+    def run(self, callback):
         fourier_dico = fft(self.X, axis=1)
         L = np.max(np.real(fourier_dico * np.conj(fourier_dico)), axis=1).sum()
         step_size = 1. / L
@@ -29,7 +33,7 @@ class Solver(BaseSolver):
         w_old = w.copy()
         t_old = 1.
 
-        for _ in range(n_iter):
+        while callback(w):
             signal = signal = np.concatenate(
                 [np.array([np.convolve(w_k, x_k, mode="full")
                            for w_k, x_k in zip(w[:, :, i], self.X)]
