@@ -33,12 +33,12 @@ class Dataset(BaseDataset):
         X = rng.normal(size=(self.n_features, self.kernel_size))
 
         theta = rng.random(size=(self.n_features,
-                                 self.signal_length,
+                                 self.signal_length - self.kernel_size + 1,
                                  self.n_samples))
         theta = theta > 1 - self.sparsity
 
         y = np.concatenate(
-            [np.array([np.convolve(theta_k, d_k, mode="same")
+            [np.array([np.convolve(theta_k, d_k, mode="full")
                        for theta_k, d_k in zip(theta[:, :, i], X)]
                       ).sum(axis=0).reshape(-1, 1)
              for i in range(theta.shape[2])], axis=1)
@@ -46,4 +46,4 @@ class Dataset(BaseDataset):
 
         data = dict(X=X, y=y)
 
-        return self.n_features, data
+        return theta.shape, data
