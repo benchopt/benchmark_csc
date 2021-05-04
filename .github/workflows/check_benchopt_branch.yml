@@ -11,6 +11,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
     - name: Check benchopt branch used in test
-      run: .github/workflows/check_benchopt_branch.py
-      shell: python
+      run: python .github/scripts/check_benchopt_branch.py
