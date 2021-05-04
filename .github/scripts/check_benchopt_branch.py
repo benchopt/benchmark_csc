@@ -1,7 +1,9 @@
 from pathlib import Path
 
 
-main_yml = Path(".github/workflows/main.yml")
+MAIN_YML = ".github/workflows/main.yml"
+
+main_yml = Path(MAIN_YML)
 
 benchopt_branch = [
     (idx, line.split(":", 1)[1].strip())
@@ -16,5 +18,5 @@ line, benchopt_branch = benchopt_branch[0]
 # Issue a warning if the branch used is not the master branch from benchopt
 if benchopt_branch != "benchopt:master":
     print(
-        "::warning file={main_yml},line={line}::Not default benchopt branch."
+        "::error file={MAIN_YML},line={line}::Not default benchopt branch."
     )
