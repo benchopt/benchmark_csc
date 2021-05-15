@@ -1,11 +1,11 @@
-name: check_benchopt_branch
+name: benchopt_branch
 on:
   pull_request:
     branches:
       - main
 
 jobs:
-  check_benchopt_branch:
+  is_master:
     runs-on: ubuntu-latest
 
     steps:
