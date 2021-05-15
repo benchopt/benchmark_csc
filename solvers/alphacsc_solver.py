@@ -15,8 +15,8 @@ class Solver(BaseSolver):
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
-    def set_objective(self, X, y, lmbd):
-        self.X = X[:, None]
+    def set_objective(self, D, y, lmbd):
+        self.D = D[:, None]
         self.y = np.transpose(y, (1, 0))[:, None]
         self.lmbd = lmbd
 
@@ -24,7 +24,7 @@ class Solver(BaseSolver):
     def run(self, n_iter):
 
         w, *_ = update_z_multi(
-            self.y, self.X[:, None], self.lmbd, solver="lgcd",
+            self.y, self.D, self.lmbd, solver="lgcd",
             solver_kwargs=dict(max_iter=n_iter, tol=1e-12),
             n_jobs=1
         )
