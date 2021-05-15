@@ -15,8 +15,9 @@ print(f"benchopt_branch = '{benchopt_branch}'")
 assert len(benchopt_branch) == 1
 line, benchopt_branch = benchopt_branch[0]
 
-# Issue a warning if the branch used is not the master branch from benchopt
+# Issue an error if the branch used is not the master branch from benchopt
 if benchopt_branch != "benchopt:master":
     print(
         "::error file={MAIN_YML},line={line}::Not default benchopt branch."
     )
+    raise SystemExit(1)
