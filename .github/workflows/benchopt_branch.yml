@@ -1,0 +1,20 @@
+name: benchopt_branch
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  is_master:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Check benchopt branch used in test
+      run: python .github/scripts/benchopt_branch_is_master.py
