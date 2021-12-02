@@ -16,7 +16,7 @@ assert len(benchopt_branch) == 1
 line, benchopt_branch = benchopt_branch[0]
 
 # Issue an error if the branch used is not the master branch from benchopt
-if benchopt_branch != "benchopt:master":
+if benchopt_branch != "benchopt:main":
     print(
         "::error file={MAIN_YML},line={line}::Not default benchopt branch."
     )
