@@ -1,4 +1,4 @@
-BenchOpt bnechmark for Convolutional Sparse Coding
+BenchOpt benchmark for Convolutional Sparse Coding
 =====================
 |Build Status| |Python 3.6+|
 

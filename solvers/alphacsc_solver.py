@@ -3,7 +3,7 @@ from benchopt import safe_import_context
 
 with safe_import_context() as import_ctx:
     import numpy as np
-    from alphacsc.update_z_multi import update_z_multi
+    from alphacsc.update_z import update_z
 
 
 class Solver(BaseSolver):
@@ -16,19 +16,26 @@ class Solver(BaseSolver):
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
     def set_objective(self, D, y, lmbd):
-        self.D = D[:, None]
-        self.y = np.transpose(y, (1, 0))[:, None]
+        self.D = D
+        self.y = y
         self.lmbd = lmbd
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):
+        """
+        Univariate sparse coding based on alphacsc
 
-        w, *_ = update_z_multi(
-            self.y, self.D, self.lmbd, solver="lgcd",
-            solver_kwargs=dict(max_iter=n_iter, tol=1e-12),
-            n_jobs=1
+        Parameters
+        ----------
+        n_iter : int
+            Number of iterations
+        """
+
+        w = update_z(
+            self.y, self.D, self.lmbd, solver="fista",
+            solver_kwargs=dict(max_iter=n_iter, tol=1e-12)
         )
-        self.w = np.transpose(w, (1, 2, 0))
+        self.w = np.transpose(w, (0, 2, 1))
 
     # Return the solution estimate computed.
     def get_result(self):

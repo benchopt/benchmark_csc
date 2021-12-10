@@ -12,12 +12,12 @@ class Dataset(BaseDataset):
     # the cross product for each key in the dictionary.
     parameters = {
         'n_samples, n_atoms': [
-            (50, 20)
+            (10, 10)
         ]
     }
 
-    def __init__(self, n_samples=3, n_atoms=5, kernel_size=5,
-                 signal_length=15, std_noise=0.1, sparsity=0.1,
+    def __init__(self, n_samples=50, n_atoms=10, kernel_size=20,
+                 signal_length=500, std_noise=0.1, sparsity=0.1,
                  random_state=27):
         # Store the parameters of the dataset
         self.n_samples = n_samples
@@ -41,9 +41,9 @@ class Dataset(BaseDataset):
             np.sum([
                 np.convolve(theta_k, d_k, mode="full")
                 for theta_k, d_k in zip(theta[:, :, i], D)
-            ], axis=0).reshape(-1, 1)
+            ], axis=0).reshape(1, -1)
             for i in range(theta.shape[2])
-        ], axis=1)
+        ], axis=0)
         y += rng.normal(scale=self.noise, size=y.shape)
 
         data = dict(D=D, y=y)
