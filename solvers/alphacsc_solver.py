@@ -35,7 +35,7 @@ class Solver(BaseSolver):
             self.y, self.D, self.lmbd, solver="fista",
             solver_kwargs=dict(max_iter=n_iter, tol=1e-12)
         )
-        self.w = np.transpose(w, (0, 2, 1))
+        self.w = np.transpose(w, (1, 0, 2))
 
     # Return the solution estimate computed.
     def get_result(self):

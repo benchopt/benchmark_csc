@@ -4,11 +4,11 @@ BenchOpt benchmark for Convolutional Sparse Coding
 
 BenchOpt is a package to simplify and make more transparent and
 reproducible the comparisons of optimization algorithms.
-This benchmark is dedicated to solver of convolutional sparse coding:
+This benchmark is dedicated to solvers of convolutional sparse coding:
 
 .. math::
 
-    \min_w \frac{1}{2} \|y - X * w\|^2_2 + \lambda \|w\|_1
+    \min_{w > 0} \frac{1}{2} \|y - X * w\|^2_2 + \lambda \|w\|_1
 
 where n (or n_samples) stands for the number of samples, p (or n_features) stands for the number of features and
 

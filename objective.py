@@ -9,7 +9,7 @@ class Objective(BaseObjective):
 
     # parametrization of the objective with various regularization parameters.
     parameters = {
-        'reg': [1]
+        'reg': [.1],
     }
 
     def __init__(self, reg=.1):
@@ -34,9 +34,9 @@ class Objective(BaseObjective):
         signal = np.concatenate([
             np.sum([
                 np.convolve(theta_k, d_k, mode="full")
-                for theta_k, d_k in zip(theta[:, :, i], self.D)
+                for theta_k, d_k in zip(theta[i, :, :], self.D)
             ], axis=0).reshape(1, -1)
-            for i in range(theta.shape[2])
+            for i in range(theta.shape[0])
         ], axis=0)
         diff = self.y - signal
         return .5 * (diff * diff).sum() + self.lmbd * abs(theta).sum()

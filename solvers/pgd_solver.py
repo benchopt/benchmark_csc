@@ -36,28 +36,27 @@ class Solver(BaseSolver):
         mu = step_size * self.lmbd
 
         n_atoms = self.D.shape[0]
-        signal_length = self.y.shape[1]
+        n_samples, signal_length = self.y.shape
         kernel_size = self.D.shape[1]
-        n_samples = self.y.shape[0]
-        w = np.zeros((n_atoms, signal_length - kernel_size + 1, n_samples))
+        w = np.zeros((n_samples, n_atoms, signal_length - kernel_size + 1))
 
         iterate_old = w.copy()
         t_old = 1.
 
-        while callback(w):
+        while callback(iterate_old):
             # Computes the gradient
             signal = np.concatenate([
                 np.array([np.convolve(w_k, d_k, mode="full")
-                          for w_k, d_k in zip(w[:, :, i], self.D)]
+                          for w_k, d_k in zip(w[i, :, :], self.D)]
                          ).sum(axis=0).reshape(1, -1)
-                for i in range(w.shape[2])
+                for i in range(w.shape[0])
             ], axis=0)
             diff = signal - self.y
             grad = np.concatenate([
                 np.array([np.correlate(diff[i, :], d_k, mode="valid")
-                          for d_k in self.D])[:, :, None]
+                          for d_k in self.D])[None, :, :]
                 for i in range(diff.shape[0])
-            ], axis=2)
+            ], axis=0)
 
             # Gradient descent
             w -= step_size * grad
@@ -71,7 +70,7 @@ class Solver(BaseSolver):
             iterate_old = iterate.copy()
             t_old = t
 
-        self.w = w
+        self.w = iterate_old
 
     # Return the solution estimate computed.
     def get_result(self):
