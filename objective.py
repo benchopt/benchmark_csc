@@ -30,7 +30,13 @@ class Objective(BaseObjective):
         return dict(D=self.D, y=self.y, lmbd=self.lmbd)
 
     def compute(self, theta):
-        "Compute the objective value given the output x of  a solver."
+        """Compute the objective value given the output x of a solver.
+
+        Parameters
+        ----------
+        theta: array, shape (n_atoms, n_times_valid, n_samples)
+            Solution of the CSC.
+        """
         signal = np.concatenate([
             np.sum([
                 np.convolve(theta_k, d_k, mode="full")

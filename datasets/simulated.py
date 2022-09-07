@@ -17,7 +17,7 @@ class Dataset(BaseDataset):
     }
 
     def __init__(self, n_samples=3, n_atoms=5, kernel_size=5,
-                 signal_length=15, std_noise=0.1, sparsity=0.1,
+                 signal_length=1024, std_noise=0.1, sparsity=0.1,
                  random_state=27):
         # Store the parameters of the dataset
         self.n_samples = n_samples

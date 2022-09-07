@@ -12,24 +12,34 @@ class Solver(BaseSolver):
     install_cmd = 'conda'
     requirements = ['numpy', 'cython', 'pip:alphacsc']
 
+    parameters = {
+        'solver': ['lgcd', 'fista', 'l-bfgs']
+    }
+
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
     def set_objective(self, D, y, lmbd):
-        self.D = D[:, None]
-        self.y = np.transpose(y, (1, 0))[:, None]
+        self.D = D[:, None]  # shape (n_atoms, n_channels, n_times_atom)
+        self.y = np.transpose(  # shape (n_samples, n_channels, n_times)
+            y, (1, 0)
+        )[:, None]
         self.lmbd = lmbd
+
+        self.solver_kwargs = {}
+        if self.solver == 'lgcd':
+            self.solver_kwargs['tol'] = 1e-12
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):
+        self.solver_kwargs['max_iter'] = n_iter
 
-        w, *_ = update_z_multi(
-            self.y, self.D, self.lmbd, solver="lgcd",
-            solver_kwargs=dict(max_iter=n_iter, tol=1e-12),
+        self.w, *_ = update_z_multi(
+            self.y, self.D, self.lmbd, solver=self.solver,
+            solver_kwargs=self.solver_kwargs,
             n_jobs=1
-        )
-        self.w = np.transpose(w, (1, 2, 0))
+        )  # shape (n_samples, n_atoms, n_times_valid)
 
     # Return the solution estimate computed.
     def get_result(self):
-        return self.w
+        return np.transpose(self.w, (1, 2, 0))
