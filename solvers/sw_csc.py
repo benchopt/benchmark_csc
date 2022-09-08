@@ -29,8 +29,8 @@ class Solver(BaseSolver):
         self.y =y[None,:,0]
         self.lmbd = lmbd
 
-        print(self.D.shape)
-        print(self.y.shape)
+        #print(self.D.shape)
+        #print(self.y.shape)
 
         # E,l,N
         # n_channels, n_times_atom, n_atoms
@@ -45,11 +45,11 @@ class Solver(BaseSolver):
 
         self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
 
-        print(self.w.shape)
+        #print(self.w.shape)
 
     # Return the solution estimate computed.
     def get_result(self):
-        print(np.reshape(self.w, (self.D.shape[2],self.y.shape[1],1))[:,:-self.D.shape[1]+1,:].shape)
+        #print(np.reshape(self.w, (self.D.shape[2],self.y.shape[1],1))[:,:-self.D.shape[1]+1,:].shape)
         return np.reshape(self.w, (self.D.shape[2],self.y.shape[1],1))[:,:-self.D.shape[1]+1,:]
 
 fmt_verb='| {:4d} | {:4d} | {:1.5e} |'
