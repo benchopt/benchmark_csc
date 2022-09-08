@@ -12,7 +12,7 @@ class Dataset(BaseDataset):
     # the cross product for each key in the dictionary.
     parameters = {
         'n_samples, n_atoms': [
-            (50, 20)
+            (1, 20)
         ]
     }
 
