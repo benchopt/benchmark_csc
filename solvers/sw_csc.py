@@ -10,6 +10,7 @@ with safe_import_context() as import_ctx:
 
     import numpy as np
     import spams
+    import celer
 
 
 
@@ -17,9 +18,9 @@ class Solver(BaseSolver):
     name = 'sliding_windows'  # alphacsc
 
     install_cmd = 'conda'
-    requirements = ['numpy',  'pip:spams']
+    requirements = ['numpy',  'pip:spams', 'pip:celer']
 
-    parameters = { }
+    parameters = { 'window' : ['full', 'sliding']}
 
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
@@ -42,8 +43,14 @@ class Solver(BaseSolver):
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):
 
+        if self.window == 'full':
 
-        self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
+            self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
+
+        elif self.window == 'sliding':
+
+
+            self.w = sliding_window_working_set(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
 
         #print(self.w.shape)
 
@@ -56,7 +63,7 @@ fmt_verb='| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2='| {:4s} | {:4s} | {:11s} |'
 
 
-def Lasso(y, H, a0, lambd, mode="C", verbose=False):
+def Lasso(y, H, a0, lambd, mode="C", verbose=False,solver='spams'):
     
     """
     Wrapper of spams.fistaFlat for the Lasso.
@@ -81,15 +88,24 @@ def Lasso(y, H, a0, lambd, mode="C", verbose=False):
         vector,
          solution of the Lasso given by spams.fistaFlat (size: NT).
     """
+    if solver=='spams':
     
-    if mode == "C":
-        # then we convert everything in Fortran mode
-        return spams.fistaFlat(y.astype(np.float64,order='F'), H.astype(np.float64,order='F'), a0.astype(np.float64,order='F'), loss='square', regul='l1', lambda1=lambd, verbose=verbose)
-    elif mode == "F":
-        # inputs are already in Fortran mode
-        return spams.fistaFlat(y, H, a0, loss='square', regul='l1', lambda1=lambd, verbose=verbose)
+        if mode == "C":
+            # then we convert everything in Fortran mode
+            return spams.fistaFlat(y.astype(np.float64,order='F'), H.astype(np.float64,order='F'), a0.astype(np.float64,order='F'), loss='square', regul='l1', lambda1=lambd, verbose=verbose)
+        elif mode == "F":
+            # inputs are already in Fortran mode
+            return spams.fistaFlat(y, H, a0, loss='square', regul='l1', lambda1=lambd, verbose=verbose)
+        else:
+            raise ValueError('mode="C" or "F"')
+    elif solver=='celer':
+        clf = celer.Lasso(lambd,warm_start=True,fit_intercept=False)
+
+        clf.fit(H,y)
+
+        return clf.coef_
     else:
-        raise ValueError('mode="C" or "F"')
+            raise ValueError('BAd solver')
 
 
 def optimality_conditions(y, H, a):
@@ -369,7 +385,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False, kkt_stop=1e
         return asol
 
 
-def working_set_convolutional(S, W, lambd, itermax=1000, verbose=False, kkt_stop=1e-3, log=False):
+def working_set_convolutional(S, W, lambd, itermax=1000, verbose=False, kkt_stop=1e-4, log=False):
     
     """
      Working set, computing the optimality conditions with the convolution.
