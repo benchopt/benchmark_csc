@@ -8,7 +8,7 @@ This benchmark is dedicated to solver of convolutional sparse coding:
 
 .. math::
 
-    \min_w \frac{1}{2} \|y - X * w\|^2_2 + \lambda \|w\|_1
+    \min_{w > 0} \frac{1}{2} \|y - X * w\|^2_2 + \lambda \|w\|_1
 
 where n (or n_samples) stands for the number of samples, p (or n_features) stands for the number of features and
 
