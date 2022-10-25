@@ -19,6 +19,7 @@ class Solver(BaseSolver):
 
     install_cmd = 'conda'
     requirements = ['numpy',  'pip:spams', 'pip:celer']
+    stopping_strategy = 'tolerance'
 
     parameters = { 'window' : ['full', 'sliding']}
 
@@ -41,16 +42,19 @@ class Solver(BaseSolver):
 
 
     # Main function of the solver, which computes a solution estimate.
-    def run(self, n_iter):
+    def run(self, tol):
+
+        n_iter = 10000
+
 
         if self.window == 'full':
 
-            self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
+            self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol*20, log=False)
 
         elif self.window == 'sliding':
 
 
-            self.w = sliding_window_working_set(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=1e-3, log=False)
+            self.w = sliding_window_working_set(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol*20, log=False)
 
         #print(self.w.shape)
 
