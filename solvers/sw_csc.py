@@ -49,12 +49,12 @@ class Solver(BaseSolver):
 
         if self.window == 'full':
 
-            self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol*20, log=False)
+            self.w = working_set_convolutional(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol, log=False)
 
         elif self.window == 'sliding':
 
 
-            self.w = sliding_window_working_set(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol*20, log=False)
+            self.w = sliding_window_working_set(self.y, self.D, self.lmbd, itermax=n_iter, verbose=False, kkt_stop=tol, log=False)
 
         #print(self.w.shape)
 
