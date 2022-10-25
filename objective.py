@@ -9,7 +9,7 @@ class Objective(BaseObjective):
 
     # parametrization of the objective with various regularization parameters.
     parameters = {
-        'reg': [1]
+        'reg': [.5]
     }
 
     def __init__(self, reg=.1):
@@ -21,9 +21,16 @@ class Objective(BaseObjective):
 
         The argument are the key in the data dictionary returned by
         get_data.
+
+        Parameters
+        ----------
+        D : array, shape (n_atoms, kernel_size)
+            Dictionary for the CSC problem.
+        y : array, shape (n_times, n_samples)
+            Signals to run the CSC on.
         """
         self.D, self.y = D, y
-        self.lmbd = self.reg
+        self.lmbd = self.reg * get_lambda_max(D, y)
 
     def to_dict(self):
         "Returns a dict to pass to the set_objective method of a solver."
@@ -46,3 +53,10 @@ class Objective(BaseObjective):
         ], axis=1)
         diff = self.y - signal
         return .5 * (diff * diff).sum() + self.lmbd * abs(theta).sum()
+
+
+def get_lambda_max(y, D_hat):
+
+    return np.max([[
+        np.correlate(D_k, y_i, mode='valid') for y_i in y.T
+    ] for D_k in D_hat])
