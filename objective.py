@@ -37,7 +37,7 @@ class Objective(BaseObjective):
         return dict(D=self.D, y=self.y, lmbd=self.lmbd)
 
     def compute(self, theta):
-        """Compute the objective value given the output x of a solver.
+        """Compute the objective value given the output theta of a solver.
 
         Parameters
         ----------

@@ -7,9 +7,9 @@ with safe_import_context() as import_ctx:
 
 
 class Solver(BaseSolver):
-    name = 'Python-PGD'  # proximal gradient, optionally accelerated
+    name = 'Python-PGD'
 
-    stop_strategy = "callback"
+    stopping_strategy = "callback"
 
     # Store the information to compute the objective. The parameters of this
     # function are the eys of the dictionary obtained when calling
