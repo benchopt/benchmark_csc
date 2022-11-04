@@ -6,9 +6,9 @@ BenchOpt is a package to simplify and make more transparent and
 reproducible the comparisons of optimization algorithms.
 This benchmark is dedicated to solver of convolutional sparse coding:
 
-.. math::
-
-    \min_{\theta_1, \ldots, \theta_K in \mathbb{R}^d} \frac{1}{2} \|y - \sum_k=1^K d_k * \theta_k\|^2_2 + \lambda \sum_{k=1}^K \|\theta_k\|_1
+$$
+    \\min_{\\theta_1, \\ldots, \\theta_K in \\mathbb{R}^d} \\frac{1}{2} \\|y - \\sum_k=1^K d_k * \\theta_k\\|^2_2 + \\lambda \\sum_{k=1}^K \\|\\theta_k\\|_1
+$$
 
 where $K$ is the number of atoms in the dictionary, and $*$ denotes the convolution.
 
