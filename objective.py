@@ -1,6 +1,8 @@
-import numpy as np
+from benchopt import BaseObjective, safe_import_context
 
-from benchopt.base import BaseObjective
+
+with safe_import_context() as import_ctx:
+    import numpy as np
 
 
 class Objective(BaseObjective):
@@ -31,6 +33,11 @@ class Objective(BaseObjective):
         """
         self.D, self.y = D, y
         self.lmbd = self.reg * get_lambda_max(D, y)
+
+    def get_one_solution(self):
+        n_times, n_samples = self.y.shape
+        n_atoms, kernel_size = self.D.shape
+        return np.zeros((n_atoms, n_times - kernel_size + 1, n_samples))
 
     def to_dict(self):
         "Returns a dict to pass to the set_objective method of a solver."
