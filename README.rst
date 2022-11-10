@@ -1,4 +1,4 @@
-BenchOpt bnechmark for Convolutional Sparse Coding
+BenchOpt benchmark for Convolutional Sparse Coding
 =====================
 |Build Status| |Python 3.6+|
 
@@ -6,15 +6,12 @@ BenchOpt is a package to simplify and make more transparent and
 reproducible the comparisons of optimization algorithms.
 This benchmark is dedicated to solver of convolutional sparse coding:
 
-.. math::
+$$
+    \min_{\theta_1, \ldots, \theta_K \in \mathbb{R}^d}
+        \frac{1}{2} \|y - \sum_{k=1}^K d_k * \theta_k\|^2_2 + \lambda \sum_{k=1}^K \|\theta_k\|_1
+$$
 
-    \min_{w > 0} \frac{1}{2} \|y - X * w\|^2_2 + \lambda \|w\|_1
-
-where n (or n_samples) stands for the number of samples, p (or n_features) stands for the number of features and
-
-.. math::
-
- X = [x_1^\top, \dots, x_n^\top]^\top \in \mathbb{R}^{n \times p}
+where $K$ is the number of atoms in the dictionary, $d_1, \ldots, d_K \in \mathbb{R}^d$ are the atoms in the dictionary and $*$ denotes the convolution.
 
 Install
 --------

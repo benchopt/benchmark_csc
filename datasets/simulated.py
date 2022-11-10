@@ -56,6 +56,4 @@ class Dataset(BaseDataset):
         ], axis=1)
         y += rng.normal(scale=self.noise, size=y.shape)
 
-        data = dict(D=D, y=y)
-
-        return theta.shape, data
+        return dict(D=D, y=y)
