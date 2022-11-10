@@ -20,10 +20,11 @@ class Solver(BaseSolver):
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
-    def set_objective(self, D, y, lmbd):
+    def set_objective(self, D, y, lmbd, positive):
         self.D = D.T[:, None]  # shape (n_times_atom, n_channel, n_atoms)
         self.y = y[:, None]  # shape (n_times, n_channel, n_samples)
         self.lmbd = lmbd
+        self.positive = positive
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):
@@ -31,7 +32,7 @@ class Solver(BaseSolver):
         opt = ConvBPDN.Options({
             'Verbose': False, 'MaxMainIter': n_iter, 'FastSolve': True,
             'RelStopTol': 0, 'AbsStopTol': 0, 'AuxVarObj': False,
-            'NonNegCoef': True
+            'NonNegCoef': self.positive
         })
         cbpdn = ConvBPDN(
             self.D, self.y, self.lmbd, opt, dimN=1
