@@ -19,12 +19,21 @@ class Solver(BaseSolver):
     install_cmd = 'conda'
     requirements = ['python-spams', 'pip:celer']
     stopping_strategy = 'tolerance'
-    parameters = {'window': ['full', 'sliding']}
+    parameters = {
+        'window': ['full', 'sliding'],
+        'solver': ['celer', 'spams']
+    }
+
+    def skip(self, D, y, lmbd, positive):
+        if positive:
+            return True, "SW can only handle positive=False"
+
+        return False, None
 
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
-    def set_objective(self, D, y, lmbd):
+    def set_objective(self, D, y, lmbd, positive):
         self.D = np.transpose(D[:, None, :], (1, 2, 0))
         self.y = y[None, :, 0]
         self.lmbd = lmbd
@@ -37,13 +46,15 @@ class Solver(BaseSolver):
         if self.window == 'full':
             self.w = working_set_convolutional(
                 self.y, self.D, self.lmbd, itermax=itermax,
-                verbose=False, kkt_stop=tol, log=False
+                verbose=False, kkt_stop=tol/10, log=False,
+                solver=self.solver
             )
 
         elif self.window == 'sliding':
             self.w = sliding_window_working_set(
                 self.y, self.D, self.lmbd, itermax=itermax,
-                verbose=False, kkt_stop=tol, log=False
+                verbose=False, kkt_stop=tol/10, log=False,
+                solver=self.solver
             )
 
     # Return the solution estimate computed.
@@ -57,7 +68,7 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def Lasso(y, H, a0, lambd, mode="C", verbose=False, solver='spams'):
+def solve_lasso(y, H, a0, lambd, mode="C", verbose=False, solver='celer'):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
@@ -102,13 +113,16 @@ def Lasso(y, H, a0, lambd, mode="C", verbose=False, solver='spams'):
         else:
             raise ValueError('mode="C" or "F"')
     elif solver == 'celer':
+        # we need to use lambd / n_samples as the l2 loss is scaled by this
+        # term in celer.
         clf = celer.Lasso(
-            lambd, warm_start=True,
+            lambd / y.shape[0], warm_start=True,
             fit_intercept=False
         )
-        clf.fit(H, y)
+        clf.coef_ = a0[:, 0]
+        clf.fit(H, y[:, 0])
 
-        return clf.coef_
+        return clf.coef_[:, None]
     else:
         raise ValueError('Bad solver')
 
@@ -364,7 +378,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
         Htilde = H[:, J]  # reduction of the problem on J
         atilde0 = asol[J]
         # computation of the solution on the subproblem
-        atildesol = Lasso(y, Htilde, atilde0, lambd, mode="F")
+        atildesol = solve_lasso(y, Htilde, atilde0, lambd, mode="F")
 
         # Computation of the optimality conditions
         gd = np.dot(H.T, (np.dot(Htilde, atildesol) - y))
@@ -413,7 +427,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
 
 
 def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
-                              verbose=False, log=False):
+                              verbose=False, log=False, solver='celer'):
 
     """
      Working set, computing the optimality conditions with the convolution.
@@ -435,6 +449,8 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         optimality conditions,
     log : boolean, optional
         also returns LOG if set to True.
+    solver :str, optional
+        Solver to solve lasso sub problems.
 
     Returns
     ----------
@@ -486,7 +502,9 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         y2 = y[sel, :].astype(np.float64, order='F')
 
         # Solve the Lasso with the new index
-        atilde = Lasso(y2, Htilde2, atilde, lambd, mode="F")
+        atilde = solve_lasso(
+            y2, Htilde2, atilde, lambd, mode="F", solver=solver
+        )
 
         if verbose:
             if ((niter-1) % 20) == 0:
@@ -520,7 +538,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
 
 def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
-                               verbose=False, log=False):
+                               verbose=False, log=False, solver='celer'):
 
     """Sliding Window Working set.
 
@@ -544,6 +562,8 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
         optimality conditions,
     log : boolean, optional
         also returns LOG if set to True.
+    solver :str, optional
+        Solver to solve lasso sub problems.
 
     Returns
     ----------
@@ -648,8 +668,9 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 y_loc2 = y_loc[sel, :].astype(np.float64, order='F')
 
                 # Résolution du Lasso sur le problème réduit
-                xtilde_loc = Lasso(
-                    y_loc2, Htilde_loc2, xtilde_loc, lambd, mode="F"
+                xtilde_loc = solve_lasso(
+                    y_loc2, Htilde_loc2, xtilde_loc, lambd, mode="F",
+                    solver=solver
                 )
 
         # after convergence on current window, three cases:
