@@ -17,7 +17,7 @@ class Solver(BaseSolver):
     name = 'sliding_windows'  # alphacsc
 
     install_cmd = 'conda'
-    requirements = ['python-spams', 'pip:celer']
+    requirements = ['pip:spams', 'pip:celer']
     stopping_strategy = 'tolerance'
     parameters = {
         'window': ['full', 'sliding'],
