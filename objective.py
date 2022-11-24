@@ -6,6 +6,7 @@ with safe_import_context() as import_ctx:
 
 
 class Objective(BaseObjective):
+    min_benchopt_version = "1.3"
     # Name of the Objective function
     name = "Convolutional Sparse Coding"
 
@@ -39,7 +40,7 @@ class Objective(BaseObjective):
         n_atoms, kernel_size = self.D.shape
         return np.zeros((n_atoms, n_times - kernel_size + 1, n_samples))
 
-    def to_dict(self):
+    def get_objective(self):
         "Returns a dict to pass to the set_objective method of a solver."
         return dict(D=self.D, y=self.y, lmbd=self.lmbd)
 
