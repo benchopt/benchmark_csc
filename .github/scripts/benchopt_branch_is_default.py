@@ -8,16 +8,16 @@ main_yml = Path(MAIN_YML)
 benchopt_branch = [
     (idx, line.split(":", 1)[1].strip())
     for idx, line in enumerate(main_yml.read_text().splitlines())
-    if "BENCHOPT_BRANCH:" in line
+    if "benchopt_branch:" in line
 ]
-print(f"benchopt_branch = '{benchopt_branch}'")
 
-assert len(benchopt_branch) == 1
-line, benchopt_branch = benchopt_branch[0]
+for line, benchopt_branch in benchopt_branch:
+    print(f"Using benchopt_branch = '{benchopt_branch}'")
 
-# Issue an error if the branch used is not the master branch from benchopt
-if benchopt_branch != "benchopt:main":
-    print(
-        "::error file={MAIN_YML},line={line}::Not default benchopt branch."
-    )
-    raise SystemExit(1)
+    # Issue an error if the branch used is not the master branch from benchopt
+    if benchopt_branch != "benchopt@main":
+        print(
+            f"::error file={MAIN_YML},line={line}::"
+            "Commit using non-default branch of benchopt."
+        )
+        raise SystemExit(1)
