@@ -94,26 +94,7 @@ def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='cele
         vector,
          solution of the Lasso given by spams.fistaFlat (size: NT).
     """
-    if solver == 'spams':
-
-        if mode == "C":
-            # then we convert everything in Fortran mode
-            return spams.fistaFlat(
-                y.astype(np.float64, order='F'),
-                H.astype(np.float64, order='F'),
-                a0.astype(np.float64, order='F'),
-                loss='square', regul='l1',
-                lambda1=lambd, verbose=verbose
-            )
-        elif mode == "F":
-            # inputs are already in Fortran mode
-            return spams.fistaFlat(
-                y, H, a0, loss='square', regul='l1',
-                lambda1=lambd, verbose=verbose
-            )
-        else:
-            raise ValueError('mode="C" or "F"')
-    elif solver == 'celer':
+    if solver == 'celer':
         # we need to use lambd / n_samples as the l2 loss is scaled by this
         # term in celer.
         clf = celer.Lasso(
@@ -358,9 +339,9 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
     T = S.shape[1]  # number of time steps
 
     # Vectorization step
-    y = S.reshape((-1, 1)).astype(np.float64, order='F')  # signal vector
+    y = S.reshape((-1, 1))  # signal vector
     # vector candidate as solution of the initial problem
-    asol = np.zeros((N*T, 1)).astype(np.float64, order='F')
+    asol = np.zeros((N*T, 1))
 
     # Computation of the optimality conditions and initialization
     # of the working set
@@ -413,7 +394,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
 
         niter += 1
 
-    asol = np.zeros((N*T, 1)).astype(np.float64, order='F')
+    asol = np.zeros((N*T, 1))
     asol[J] = atildesol  # new candidate as solution of the initial problem
 
     if log:
@@ -465,9 +446,9 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
     T = S.shape[1]  # number of time steps
 
     # Vectorization steps
-    y = S.reshape((-1, 1)).astype(np.float64, order='F')  # signal vector
-    Htilde = np.zeros((y.shape[0], 0)).astype(np.float64, order='F')
-    atilde = np.zeros((0, 1)).astype(np.float64, order='F')
+    y = S.reshape((-1, 1))  # signal vector
+    Htilde = np.zeros((y.shape[0], 0))
+    atilde = np.zeros((0, 1))
 
     # Initialization of the working set
     J = []  # working set
@@ -497,17 +478,17 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         # Add this new index
         Htilde = np.column_stack(
             (Htilde, H_column_full(W, T, new_index))
-        ).astype(np.float64, order='F')
-        atilde = np.row_stack((atilde, 0)).astype(np.float64, order='F')
+        )
+        atilde = np.row_stack((atilde, 0))
 
         # Extract non zero lines of Htilde
         sel = np.any(Htilde, 1)
-        Htilde2 = Htilde[sel, :].astype(np.float64, order='F')
-        y2 = y[sel, :].astype(np.float64, order='F')
+        Htilde2 = Htilde[sel, :]
+        y2 = y[sel, :]
 
         # Solve the Lasso with the new index
         atilde = solve_lasso(
-            y2, Htilde2, atilde, lambd, tol=kkt_stop, mode="F", solver=solver
+            y2, Htilde2, atilde, lambd, tol=kkt_stop, mode="F", solver=solver, positive=positive
         )
 
         if verbose:
@@ -527,7 +508,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
         niter += 1
 
-    asol = np.zeros((N*T, 1)).astype(np.float64, order='F')
+    asol = np.zeros((N*T, 1))
     asol[J] = atilde
 
     if log:
@@ -597,11 +578,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
 
     S_loc = S[:, w1:w2]  # signal on the current window
     # vectorization of S_loc
-    y_loc = S_loc.reshape((-1, 1)).astype(np.float64, order='F')
+    y_loc = S_loc.reshape((-1, 1))
     # design matrix on the current window
-    Htilde_loc = np.zeros((E*(w2-w1), 0)).astype(np.float64, order='F')
+    Htilde_loc = np.zeros((E*(w2-w1), 0))
     # solution of the current window
-    xtilde_loc = np.zeros((0, 1)).astype(np.float64, order='F')
+    xtilde_loc = np.zeros((0, 1))
     activ_loc = []  # list of activations represented as tuples (neuron, time)
     # Caution: variables having the "loc" suffix are related
     # to the current window. Therefore note that a local time t corresponds
@@ -663,20 +644,20 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 Htilde_loc = np.column_stack((
                     Htilde_loc,
                     H_column_window(W, w2-w1, new_activ_neuron, new_activ_time)
-                )).astype(np.float64, order='F')
+                ))
                 xtilde_loc = np.row_stack(
                     (xtilde_loc, 0)
-                ).astype(np.float64, order='F')
+                )
 
                 # Sélection des lignes ne contenant pas que des zéros
                 sel = np.any(Htilde_loc, 1)
-                Htilde_loc2 = Htilde_loc[sel, :].astype(np.float64, order='F')
-                y_loc2 = y_loc[sel, :].astype(np.float64, order='F')
+                Htilde_loc2 = Htilde_loc[sel, :]
+                y_loc2 = y_loc[sel, :]
 
                 # Résolution du Lasso sur le problème réduit
                 xtilde_loc = solve_lasso(
                     y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop, mode="F",
-                    solver=solver
+                    solver=solver, positive=positive
                 )
 
         # after convergence on current window, three cases:
@@ -707,13 +688,13 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     S_loc = S[:, w1:w2]
                     y_loc = S_loc.reshape(
                         (-1, 1)
-                    ).astype(np.float64, order='F')
+                    )
                     Htilde_loc = np.zeros(
                         (E*(w2-w1), 0)
-                    ).astype(np.float64, order='F')
+                    )
                     xtilde_loc = np.zeros(
                         (0, 1)
-                    ).astype(np.float64, order='F')
+                    )
                     activ_loc = []
                 # if there is not enough space to create a new window
                 # of size 4*L, extend the current one to the end of
@@ -731,20 +712,20 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     # Create a new Htilde for the extended window
                     Htilde_loc = np.zeros(
                         (E*(w2_new-w1), 0)
-                    ).astype(np.float64, order='F')
+                    )
                     for activ_idx in range(len(activ_loc)):
                         loc = activ_loc[activ_idx]
                         Htilde_loc = np.column_stack((
                             Htilde_loc,
                             H_column_window(W, w2_new-w1, loc[0], loc[1])
-                        )).astype(np.float64, order='F')
+                        ))
 
                     w2 = w2_new
                     niter = 0
                     S_loc = S[:, w1:w2]
                     y_loc = S_loc.reshape(
                         (-1, 1)
-                    ).astype(np.float64, order='F')
+                    )
 
             # CASE 2: at least an activation close to the left border of
             # current window, need to merge with last window
@@ -762,10 +743,10 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     # the windows
                     Htilde_loc = np.zeros(
                         (E*(w2-previous_w1), 0)
-                    ).astype(np.float64, order='F')
+                    )
                     previous_xtilde_loc = np.zeros(
                         (0, 1)
-                    ).astype(np.float64, order='F')
+                    )
                     # add H columns and x estimates corresponding
                     # to previous activations
                     for activ_idx in range(len(previous_activ_loc)):
@@ -773,11 +754,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         Htilde_loc = np.column_stack((
                             Htilde_loc,
                             H_column_window(W, w2-previous_w1, loc[0], loc[1])
-                        )).astype(np.float64, order='F')
+                        ))
                         previous_xtilde_loc = np.row_stack((
                             previous_xtilde_loc,
                             A_sol[loc[0], previous_w1+loc[1]]
-                        )).astype(np.float64, order='F')
+                        ))
                     # convert the activation times of the current window for
                     # the merging of the windows: just need to translate
                     # these times with the correct shift
@@ -790,11 +771,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         Htilde_loc = np.column_stack((
                             Htilde_loc,
                             H_column_window(W, w2-previous_w1, loc[0], loc[1])
-                        )).astype(np.float64, order='F')
+                        ))
                     # merge the two estimated vectors
                     xtilde_loc = np.row_stack((
                         previous_xtilde_loc, xtilde_loc
-                    )).astype(np.float64, order='F')
+                    ))
                     # merge the lists of activations
                     activ_loc = previous_activ_loc + activ_loc_new
                     # new left border of the merged window
@@ -803,7 +784,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     S_loc = S[:, w1:w2]
                     y_loc = S_loc.reshape(
                         (-1, 1)
-                    ).astype(np.float64, order='F')
+                    )
                 # If there is no window in Omega
                 else:
                     # if there is enough space to create a new window
@@ -819,13 +800,13 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         S_loc = S[:, w1:w2]
                         y_loc = S_loc.reshape(
                             (-1, 1)
-                        ).astype(np.float64, order='F')
+                        )
                         Htilde_loc = np.zeros(
                             (E*(w2-w1), 0)
-                        ).astype(np.float64, order='F')
+                        )
                         xtilde_loc = np.zeros(
                             (0, 1)
-                        ).astype(np.float64, order='F')
+                        )
                         activ_loc = []
                     # if there is not enough space to create a new window of
                     # size 4*L, extend the current one to the end of the
@@ -844,20 +825,20 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         # Create a new Htilde for the extended window
                         Htilde_loc = np.zeros(
                             (E*(w2_new-w1), 0)
-                        ).astype(np.float64, order='F')
+                        )
                         for activ_idx in range(len(activ_loc)):
                             loc = activ_loc[activ_idx]
                             Htilde_loc = np.column_stack((
                                 Htilde_loc,
                                 H_column_window(W, w2_new-w1, loc[0], loc[1])
-                            )).astype(np.float64, order='F')
+                            ))
 
                         w2 = w2_new
                         niter = 0
                         S_loc = S[:, w1:w2]
                         y_loc = S_loc.reshape(
                             (-1, 1)
-                        ).astype(np.float64, order='F')
+                        )
 
             # CASE 3: at least an activation close to the right border of
             # current window, extend it
@@ -875,18 +856,18 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 # Create a new Htilde for the extended window
                 Htilde_loc = np.zeros(
                     (E*(w2_new-w1), 0)
-                ).astype(np.float64, order='F')
+                )
                 for activ_idx in range(len(activ_loc)):
                     loc = activ_loc[activ_idx]
                     Htilde_loc = np.column_stack((
                         Htilde_loc,
                         H_column_window(W, w2_new-w1, loc[0], loc[1])
-                    )).astype(np.float64, order='F')
+                    ))
 
                 w2 = w2_new
                 niter = 0
                 S_loc = S[:, w1:w2]
-                y_loc = S_loc.reshape((-1, 1)).astype(np.float64, order='F')
+                y_loc = S_loc.reshape((-1, 1))
 
             # CASE 4
             elif (first_activ_time_loc <= L-1 and
@@ -907,10 +888,10 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     # of the windows
                     Htilde_loc = np.zeros(
                         (E*(w2-previous_w1), 0)
-                    ).astype(np.float64, order='F')
+                    )
                     previous_xtilde_loc = np.zeros(
                         (0, 1)
-                    ).astype(np.float64, order='F')
+                    )
                     # add H columns and x estimates corresponding
                     # to previous activations
                     for activ_idx in range(len(previous_activ_loc)):
@@ -918,11 +899,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         Htilde_loc = np.column_stack((
                             Htilde_loc,
                             H_column_window(W, w2-previous_w1, loc[0], loc[1])
-                        )).astype(np.float64, order='F')
+                        ))
                         previous_xtilde_loc = np.row_stack((
                             previous_xtilde_loc,
                             A_sol[loc[0], previous_w1+loc[1]]
-                        )).astype(np.float64, order='F')
+                        ))
                     # convert the activation times of the current window
                     # for the merging of the windows: just need to translate
                     # these times with the correct shift
@@ -935,11 +916,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                         Htilde_loc = np.column_stack((
                             Htilde_loc,
                             H_column_window(W, w2-previous_w1, loc[0], loc[1])
-                        )).astype(np.float64, order='F')
+                        ))
                     # merge the two estimated vectors
                     xtilde_loc = np.row_stack((
                         previous_xtilde_loc, xtilde_loc
-                    )).astype(np.float64, order='F')
+                    ))
                     # merge the lists of activations activ_times_loc_new
                     activ_loc = previous_activ_loc + activ_loc_new
                     # new left border of the merged window
@@ -948,7 +929,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                     S_loc = S[:, w1:w2]
                     y_loc = S_loc.reshape(
                         (-1, 1)
-                    ).astype(np.float64, order='F')
+                    )
 
                 # Want to extend the window
 
@@ -965,18 +946,18 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 # Create a new Htilde for the extended window
                 Htilde_loc = np.zeros(
                     (E*(w2_new-w1), 0)
-                ).astype(np.float64, order='F')
+                )
                 for activ_idx in range(len(activ_loc)):
                     loc = activ_loc[activ_idx]
                     Htilde_loc = np.column_stack((
                         Htilde_loc,
                         H_column_window(W, w2_new-w1, loc[0], loc[1])
-                    )).astype(np.float64, order='F')
+                    ))
 
                 w2 = w2_new
                 niter = 0
                 S_loc = S[:, w1:w2]
-                y_loc = S_loc.reshape((-1, 1)).astype(np.float64, order='F')
+                y_loc = S_loc.reshape((-1, 1))
 
             # CASE 5: should not enter here
             else:
@@ -996,11 +977,11 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 w2 = w2+3*L+1
                 niter = 0
                 S_loc = S[:, w1:w2]
-                y_loc = S_loc.reshape((-1, 1)).astype(np.float64, order='F')
+                y_loc = S_loc.reshape((-1, 1))
                 Htilde_loc = np.zeros(
                     (E*(w2-w1), 0)
-                ).astype(np.float64, order='F')
-                xtilde_loc = np.zeros((0, 1)).astype(np.float64, order='F')
+                )
+                xtilde_loc = np.zeros((0, 1))
                 activ_loc = []
             # if there is not enough space to create a new window of size 4*L,
             # extend the current one to the end of the signal with new w2=T
@@ -1017,20 +998,20 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
                 # Create a new Htilde for the extended window
                 Htilde_loc = np.zeros(
                     (E*(w2_new-w1), 0)
-                ).astype(np.float64, order='F')
+                )
                 for activ_idx in range(len(activ_loc)):
                     loc = activ_loc[activ_idx]
                     Htilde_loc = np.column_stack((
                         Htilde_loc,
                         H_column_window(W, w2_new-w1, loc[0], loc[1])
-                    )).astype(np.float64, order='F')
+                    ))
 
                 w2 = w2_new
                 niter = 0
                 S_loc = S[:, w1:w2]
-                y_loc = S_loc.reshape((-1, 1)).astype(np.float64, order='F')
+                y_loc = S_loc.reshape((-1, 1))
 
-    x = A_sol.reshape((-1, 1)).astype(np.float64, order='F')
+    x = A_sol.reshape((-1, 1))
 
     if log:
         LOG = {}
