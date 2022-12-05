@@ -68,7 +68,7 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def solve_lasso(y, H, a0, lambd, mode="C", verbose=False, solver='celer'):
+def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer'):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
@@ -117,7 +117,7 @@ def solve_lasso(y, H, a0, lambd, mode="C", verbose=False, solver='celer'):
         # term in celer.
         clf = celer.Lasso(
             lambd / y.shape[0], warm_start=True,
-            fit_intercept=False
+            fit_intercept=False, tol=tol*0.1
         )
         clf.coef_ = a0[:, 0]
         clf.fit(H, y[:, 0])
@@ -503,7 +503,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
         # Solve the Lasso with the new index
         atilde = solve_lasso(
-            y2, Htilde2, atilde, lambd, mode="F", solver=solver
+            y2, Htilde2, atilde, lambd, tol=kkt_stop, mode="F", solver=solver
         )
 
         if verbose:
@@ -669,7 +669,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
 
                 # Résolution du Lasso sur le problème réduit
                 xtilde_loc = solve_lasso(
-                    y_loc2, Htilde_loc2, xtilde_loc, lambd, mode="F",
+                    y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop, mode="F",
                     solver=solver
                 )
 
