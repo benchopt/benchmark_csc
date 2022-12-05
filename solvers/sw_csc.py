@@ -37,6 +37,7 @@ class Solver(BaseSolver):
         self.D = np.transpose(D[:, None, :], (1, 2, 0))
         self.y = y[None, :, 0]
         self.lmbd = lmbd
+        self.positive = positive
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, tol):
@@ -47,14 +48,14 @@ class Solver(BaseSolver):
             self.w = working_set_convolutional(
                 self.y, self.D, self.lmbd, itermax=itermax,
                 verbose=False, kkt_stop=tol, log=False,
-                solver=self.solver
+                solver=self.solver, positive=self.positive
             )
 
         elif self.window == 'sliding':
             self.w = sliding_window_working_set(
                 self.y, self.D, self.lmbd, itermax=itermax,
                 verbose=False, kkt_stop=tol, log=False,
-                solver=self.solver
+                solver=self.solver, positive=self.positive
             )
 
     # Return the solution estimate computed.
@@ -68,7 +69,7 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer'):
+def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer', positive=False):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
@@ -117,7 +118,7 @@ def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='cele
         # term in celer.
         clf = celer.Lasso(
             lambd / y.shape[0], warm_start=True,
-            fit_intercept=False, tol=tol*0.1
+            fit_intercept=False, tol=tol*0.1, positive=positive
         )
         clf.coef_ = a0[:, 0]
         clf.fit(H, y[:, 0])
@@ -427,7 +428,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
 
 
 def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
-                              verbose=False, log=False, solver='celer'):
+                              verbose=False, log=False, solver='celer', positive=False):
 
     """
      Working set, computing the optimality conditions with the convolution.
@@ -480,6 +481,9 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         # of the working set
         gd = optimality_conditions_corr(y, Htilde, atilde, W, T)
         gd[J, 0] = 0  # remove the coordinates already in the working set
+        if positive:
+            gd[gd < 0] = 0
+
         new_index = np.argmax(np.abs(gd), axis=0)[0]
 
         # Checking the violation of the optimality conditions
@@ -538,7 +542,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
 
 def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
-                               verbose=False, log=False, solver='celer'):
+                               verbose=False, log=False, solver='celer', positive=False):
 
     """Sliding Window Working set.
 
@@ -621,6 +625,8 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
             gd = optimality_conditions_corr_window(
                 y_loc, Htilde_loc, xtilde_loc, W, w2-w1
             )
+            if positive:
+                gd[gd < 0] = 0
 
             if w2 == T:  # if end of signal
                 gd_loc = gd[:, :]  # search activation in the whole window
