@@ -17,11 +17,11 @@ class Solver(BaseSolver):
     name = 'sliding_windows'  # alphacsc
 
     install_cmd = 'conda'
-    requirements = ['pip:spams', 'pip:celer']
+    requirements = ['pip:celer']
     stopping_strategy = 'tolerance'
     parameters = {
         'window': ['full', 'sliding'],
-        'solver': ['celer', 'spams']
+        'solver': ['celer']
     }
 
     def skip(self, D, y, lmbd, positive):
@@ -46,14 +46,14 @@ class Solver(BaseSolver):
         if self.window == 'full':
             self.w = working_set_convolutional(
                 self.y, self.D, self.lmbd, itermax=itermax,
-                verbose=False, kkt_stop=tol/10, log=False,
+                verbose=False, kkt_stop=tol, log=False,
                 solver=self.solver
             )
 
         elif self.window == 'sliding':
             self.w = sliding_window_working_set(
                 self.y, self.D, self.lmbd, itermax=itermax,
-                verbose=False, kkt_stop=tol/10, log=False,
+                verbose=False, kkt_stop=tol, log=False,
                 solver=self.solver
             )
 
