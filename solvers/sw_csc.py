@@ -69,7 +69,8 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer', positive=False):
+def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer',
+                positive=False):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
