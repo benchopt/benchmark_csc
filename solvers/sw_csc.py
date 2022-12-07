@@ -9,7 +9,6 @@ from benchopt import safe_import_context
 with safe_import_context() as import_ctx:
 
     import numpy as np
-    import spams
     import celer
 
 
@@ -69,31 +68,30 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer',
-                positive=False):
+def solve_lasso(y, H, a0, lambd, tol=1e-4, solver='celer', positive=False):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
 
     Parameters
     ----------
-        y : vector
-         vector of observations (size: ET),
-        H : matrix
-         design matrix (size: ETxNT),
-        a0 : vector
-         first iterate (size: NT),
-        lambd : float
-         regularization parameter of the Lasso,
-        mode : string
-         "C" by default, "F" if the inputs are already in Fortran mode,
-        verbose : boolean, optional
-         verbose mode of spams.fistaFlat, False by default.
+    y : vector
+        vector of observations (size: ET),
+    H : matrix
+        design matrix (size: ETxNT),
+    a0 : vector
+        first iterate (size: NT),
+    lambd : float
+        regularization parameter of the Lasso,
+    solver : str
+        solver used to solve the lasso problem.
+    positive : bool
+        Whether or not to import positivity constraints on the Lasso.
 
     Returns
     -------
-        vector,
-         solution of the Lasso given by spams.fistaFlat (size: NT).
+    z : vector
+        solution of the Lasso given by spams.fistaFlat (size: NT).
     """
     if solver == 'celer':
         # we need to use lambd / n_samples as the l2 loss is scaled by this
@@ -361,7 +359,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
         Htilde = H[:, J]  # reduction of the problem on J
         atilde0 = asol[J]
         # computation of the solution on the subproblem
-        atildesol = solve_lasso(y, Htilde, atilde0, lambd, mode="F")
+        atildesol = solve_lasso(y, Htilde, atilde0, lambd)
 
         # Computation of the optimality conditions
         gd = np.dot(H.T, (np.dot(Htilde, atildesol) - y))
@@ -410,7 +408,8 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
 
 
 def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
-                              verbose=False, log=False, solver='celer', positive=False):
+                              verbose=False, log=False, solver='celer',
+                              positive=False):
 
     """
      Working set, computing the optimality conditions with the convolution.
@@ -489,7 +488,8 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
         # Solve the Lasso with the new index
         atilde = solve_lasso(
-            y2, Htilde2, atilde, lambd, tol=kkt_stop, mode="F", solver=solver, positive=positive
+            y2, Htilde2, atilde, lambd, tol=kkt_stop, solver=solver,
+            positive=positive
         )
 
         if verbose:
@@ -524,7 +524,8 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
 
 def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
-                               verbose=False, log=False, solver='celer', positive=False):
+                               verbose=False, log=False, solver='celer',
+                               positive=False):
 
     """Sliding Window Working set.
 
@@ -657,7 +658,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
 
                 # Résolution du Lasso sur le problème réduit
                 xtilde_loc = solve_lasso(
-                    y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop, mode="F",
+                    y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop,
                     solver=solver, positive=positive
                 )
 
