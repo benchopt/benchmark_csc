@@ -523,7 +523,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         return asol
 
 
-def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
+def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-4,
                                verbose=False, log=False, solver='celer',
                                positive=False):
 
