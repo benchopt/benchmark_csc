@@ -103,8 +103,6 @@ def solve_lasso(y, H, a0, lambd, tol=1e-4, solver='celer', positive=False):
         clf.coef_ = a0[:, 0]
         clf.fit(H, y[:, 0])
 
-        print(clf.coef_[:, None])
-
         return clf.coef_[:, None]
     else:
         raise ValueError('Bad solver')
@@ -462,7 +460,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
         # Computation of the optimality condition and initialization
         # of the working set
-        gd = optimality_conditions_corr(y, Htilde, atilde, W, T)
+        gd = -optimality_conditions_corr(y, Htilde, atilde, W, T)
         gd[J, 0] = 0  # remove the coordinates already in the working set
         if positive:
             gd[gd < 0] = 0
@@ -487,8 +485,6 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         sel = np.any(Htilde, 1)
         Htilde2 = Htilde[sel, :]
         y2 = y[sel, :]
-
-        print(Htilde2)
 
         # Solve the Lasso with the new index
         atilde = solve_lasso(
@@ -609,7 +605,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
             else:
                 niter += 1
 
-            gd = optimality_conditions_corr_window(
+            gd = -optimality_conditions_corr_window(
                 y_loc, Htilde_loc, xtilde_loc, W, w2-w1
             )
             if positive:
