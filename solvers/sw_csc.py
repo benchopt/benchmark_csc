@@ -9,7 +9,6 @@ from benchopt import safe_import_context
 with safe_import_context() as import_ctx:
 
     import numpy as np
-    import spams
     import celer
 
 
@@ -24,11 +23,11 @@ class Solver(BaseSolver):
         'solver': ['celer']
     }
 
-    def skip(self, D, y, lmbd, positive):
-        if positive:
-            return True, "SW can only handle positive=False"
+    # def skip(self, D, y, lmbd, positive):
+    #     if positive:
+    #         return True, "SW can only handle positive=False"
 
-        return False, None
+    #     return False, None
 
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
@@ -69,7 +68,7 @@ fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'
 fmt_verb2 = '| {:4s} | {:4s} | {:11s} |'
 
 
-def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='celer', positive=False):
+def solve_lasso(y, H, a0, lambd, tol=1e-4, verbose=False, solver='celer', positive=False):
 
     """
     Wrapper of spams.fistaFlat for the Lasso.
@@ -99,10 +98,12 @@ def solve_lasso(y, H, a0, lambd, tol=1e-4, mode="C", verbose=False, solver='cele
         # term in celer.
         clf = celer.Lasso(
             lambd / y.shape[0], warm_start=True,
-            fit_intercept=False, tol=tol*0.1, positive=positive
+            fit_intercept=False, tol=tol*0.01, positive=positive
         )
         clf.coef_ = a0[:, 0]
         clf.fit(H, y[:, 0])
+
+        print(clf.coef_[:, None])
 
         return clf.coef_[:, None]
     else:
@@ -360,7 +361,7 @@ def generic_working_set(S, H, N, lambd, itermax=1000, verbose=False,
         Htilde = H[:, J]  # reduction of the problem on J
         atilde0 = asol[J]
         # computation of the solution on the subproblem
-        atildesol = solve_lasso(y, Htilde, atilde0, lambd, mode="F")
+        atildesol = solve_lasso(y, Htilde, atilde0, lambd)
 
         # Computation of the optimality conditions
         gd = np.dot(H.T, (np.dot(Htilde, atildesol) - y))
@@ -488,7 +489,7 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
 
         # Solve the Lasso with the new index
         atilde = solve_lasso(
-            y2, Htilde2, atilde, lambd, tol=kkt_stop, mode="F", solver=solver, positive=positive
+            y2, Htilde2, atilde, lambd, tol=kkt_stop, solver=solver, positive=positive
         )
 
         if verbose:
@@ -656,7 +657,7 @@ def sliding_window_working_set(S, W, lambd, itermax=1000, kkt_stop=1e-3,
 
                 # Résolution du Lasso sur le problème réduit
                 xtilde_loc = solve_lasso(
-                    y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop, mode="F",
+                    y_loc2, Htilde_loc2, xtilde_loc, lambd, tol=kkt_stop, 
                     solver=solver, positive=positive
                 )
 
