@@ -98,7 +98,7 @@ def solve_lasso(y, H, a0, lambd, tol=1e-4, solver='celer', positive=False):
         # term in celer.
         clf = celer.Lasso(
             lambd / y.shape[0], warm_start=True,
-            fit_intercept=False, tol=tol*0.1, positive=positive
+            fit_intercept=False, tol=tol*0.01, positive=positive
         )
         clf.coef_ = a0[:, 0]
         clf.fit(H, y[:, 0])
