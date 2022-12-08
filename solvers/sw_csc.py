@@ -488,6 +488,8 @@ def working_set_convolutional(S, W, lambd, itermax=1000, kkt_stop=1e-4,
         Htilde2 = Htilde[sel, :]
         y2 = y[sel, :]
 
+        print(Htilde2)
+
         # Solve the Lasso with the new index
         atilde = solve_lasso(
             y2, Htilde2, atilde, lambd, tol=kkt_stop, solver=solver,
