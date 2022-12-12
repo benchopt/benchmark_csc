@@ -2,7 +2,6 @@
 #         Laurent Dragoni
 #
 # License: MIT License
-
 from benchopt import BaseSolver
 from benchopt import safe_import_context
 
@@ -19,15 +18,9 @@ class Solver(BaseSolver):
     requirements = ['pip:celer']
     stopping_strategy = 'tolerance'
     parameters = {
-        'window': ['full', 'sliding'],
+        'window': ['sliding', 'full'],
         'solver': ['celer']
     }
-
-    # def skip(self, D, y, lmbd, positive):
-    #     if positive:
-    #         return True, "SW can only handle positive=False"
-
-    #     return False, None
 
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
