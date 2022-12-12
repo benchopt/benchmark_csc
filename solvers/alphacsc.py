@@ -16,10 +16,16 @@ class Solver(BaseSolver):
         'solver': ['lgcd', 'fista', 'l-bfgs']
     }
 
+    def skip(self, D, y, lmbd, positive):
+        if not positive:
+            return True, "alphacsc can only handle positive=True"
+
+        return False, None
+
     # Store the information to compute the objective. The parameters of this
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
-    def set_objective(self, D, y, lmbd):
+    def set_objective(self, D, y, lmbd, positive):
         self.D = D[:, None]  # shape (n_atoms, n_channels, n_times_atom)
         self.y = np.transpose(  # shape (n_samples, n_channels, n_times)
             y, (1, 0)
@@ -28,7 +34,7 @@ class Solver(BaseSolver):
 
         self.solver_kwargs = {}
         if self.solver == 'lgcd':
-            self.solver_kwargs['tol'] = 1e-12
+            self.solver_kwargs['tol'] = 0
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):

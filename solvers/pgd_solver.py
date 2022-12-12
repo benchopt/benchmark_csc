@@ -14,8 +14,8 @@ class Solver(BaseSolver):
     # Store the information to compute the objective. The parameters of this
     # function are the eys of the dictionary obtained when calling
     # ``Objective.to_dict``.
-    def set_objective(self, D, y, lmbd):
-        self.D, self.y, self.lmbd = D, y, lmbd
+    def set_objective(self, D, y, lmbd, positive):
+        self.D, self.y, self.lmbd, self.positive = D, y, lmbd, positive
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, callback):
@@ -47,8 +47,10 @@ class Solver(BaseSolver):
                 for i in range(diff.shape[1])
             ], axis=2)
             w -= step_size * grad
-            w = np.maximum(0, w - mu)
-            # w = np.sign(w) * np.maximum(0, np.abs(w) - mu)
+            if self.positive:
+                w = np.maximum(0, w - mu)
+            else:
+                w -= np.clip(w, -mu, mu)
 
             t = 0.5 * (1 + np.sqrt(1 + 4 * t_old * t_old))
             z = w + ((t_old-1) / t) * (w - w_old)
