@@ -14,20 +14,12 @@ class Dataset(BaseDataset):
         'n_samples, n_atoms': [
             (1, 20)
         ],
-        "sparsity": [0.01, 0.005]
+        'kernel_size': [5],
+        'signal_length': [128],
+        'std_noise': [0.1],
+        "sparsity": [0.01, 0.005],
+        'random_state': [27],
     }
-
-    def __init__(self, n_samples=3, n_atoms=5, kernel_size=5,
-                 signal_length=1024, std_noise=0.1, sparsity=0.005,
-                 random_state=27):
-        # Store the parameters of the dataset
-        self.n_samples = n_samples
-        self.n_atoms = n_atoms
-        self.kernel_size = kernel_size
-        self.signal_length = signal_length
-        self.noise = std_noise
-        self.sparsity = sparsity
-        self.random_state = random_state
 
     def get_data(self):
         """Return the data to run CSC on.
@@ -54,6 +46,6 @@ class Dataset(BaseDataset):
             ], axis=0)[:, None]
             for i in range(theta.shape[2])
         ], axis=1)
-        y += rng.normal(scale=self.noise, size=y.shape)
+        y += rng.normal(scale=self.std_noise, size=y.shape)
 
         return dict(D=D, y=y)
