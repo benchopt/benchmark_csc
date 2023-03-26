@@ -13,11 +13,11 @@ class Solver(BaseSolver):
     requirements = ['numpy', 'cython', 'pip:alphacsc']
 
     parameters = {
-        'solver': ['lgcd', 'fista', 'l-bfgs']
+        'solver': ['lgcd', 'ista', 'l-bfgs']
     }
 
     def skip(self, D, y, lmbd, positive):
-        if not positive:
+        if not positive and self.solver == 'l-bfgs':
             return True, "alphacsc can only handle positive=True"
 
         return False, None
@@ -26,6 +26,7 @@ class Solver(BaseSolver):
     # function are the keys of the dictionary obtained when calling
     # ``Objective.to_dict``.
     def set_objective(self, D, y, lmbd, positive):
+        self.positive = positive
         self.D = D[:, None]  # shape (n_atoms, n_channels, n_times_atom)
         self.y = np.transpose(  # shape (n_samples, n_channels, n_times)
             y, (1, 0)
@@ -33,8 +34,10 @@ class Solver(BaseSolver):
         self.lmbd = lmbd
 
         self.solver_kwargs = {}
-        if self.solver == 'lgcd':
-            self.solver_kwargs['tol'] = 0
+        self.solver_kwargs['tol'] = 0
+        if self.solver == 'l-bfgs':
+            # Make sure the solver is only stopped by the number of iterations
+            self.solver_kwargs['pgtol'] = 0
 
     # Main function of the solver, which computes a solution estimate.
     def run(self, n_iter):
@@ -42,7 +45,7 @@ class Solver(BaseSolver):
 
         self.w, *_ = update_z_multi(
             self.y, self.D, self.lmbd, solver=self.solver,
-            solver_kwargs=self.solver_kwargs,
+            solver_kwargs=self.solver_kwargs, positive=self.positive,
             n_jobs=1
         )  # shape (n_samples, n_atoms, n_times_valid)
 
