@@ -16,7 +16,7 @@ class Solver(BaseSolver):
 
     install_cmd = 'conda'
     requirements = ['pip:celer']
-    stopping_strategy = 'tolerance'
+    sampling_strategy = 'tolerance'
     parameters = {
         'window': ['sliding', 'full'],
         'solver': ['celer']
@@ -52,9 +52,9 @@ class Solver(BaseSolver):
 
     # Return the solution estimate computed.
     def get_result(self):
-        return np.reshape(
+        return dict(theta=np.reshape(
             self.w, (self.D.shape[2], self.y.shape[1], 1)
-        )[:, :-self.D.shape[1]+1, :]
+        )[:, :-self.D.shape[1]+1, :])
 
 
 fmt_verb = '| {:4d} | {:4d} | {:1.5e} |'

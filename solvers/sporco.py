@@ -42,6 +42,6 @@ class Solver(BaseSolver):
     def get_result(self):
         # truncate codes as the objective is defined for full convolution and
         # not 'same' and reorder axis for compat with objective.
-        return np.transpose(
+        return dict(theta=np.transpose(
             self.w[:-self.D.shape[0]+1, 0], (2, 0, 1)
-        )
+        ))
