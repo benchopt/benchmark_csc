@@ -9,7 +9,7 @@ with safe_import_context() as import_ctx:
 class Solver(BaseSolver):
     name = 'Python-PGD'
 
-    stopping_strategy = "callback"
+    sampling_strategy = "callback"
 
     # Store the information to compute the objective. The parameters of this
     # function are the eys of the dictionary obtained when calling
@@ -30,10 +30,10 @@ class Solver(BaseSolver):
         signal_length, n_samples = self.y.shape
         w = np.zeros((n_atoms, signal_length - kernel_size + 1, n_samples))
 
-        w_old = w.copy()
+        self.w_old = w.copy()
         t_old = 1.
 
-        while callback(w_old):
+        while callback():
             signal = np.concatenate([
                 np.array([np.convolve(w_k, d_k, mode="full")
                           for w_k, d_k in zip(w[:, :, i], self.D)]
@@ -53,13 +53,11 @@ class Solver(BaseSolver):
                 w -= np.clip(w, -mu, mu)
 
             t = 0.5 * (1 + np.sqrt(1 + 4 * t_old * t_old))
-            z = w + ((t_old-1) / t) * (w - w_old)
-            w_old = w.copy()
+            z = w + ((t_old-1) / t) * (w - self.w_old)
+            self.w_old = w.copy()
             t_old = t
             w = z
 
-        self.w = w
-
     # Return the solution estimate computed.
     def get_result(self):
-        return self.w
+        return dict(theta=self.w_old)

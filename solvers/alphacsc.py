@@ -48,4 +48,4 @@ class Solver(BaseSolver):
 
     # Return the solution estimate computed.
     def get_result(self):
-        return np.transpose(self.w, (1, 2, 0))
+        return dict(theta=np.transpose(self.w, (1, 2, 0)))

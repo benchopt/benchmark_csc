@@ -6,9 +6,9 @@ with safe_import_context() as import_ctx:
 
 
 class Objective(BaseObjective):
-    min_benchopt_version = "1.3"
     # Name of the Objective function
     name = "Convolutional Sparse Coding"
+    min_benchopt_version = "1.5"
 
     # parametrization of the objective with various regularization parameters.
     parameters = {
@@ -32,16 +32,18 @@ class Objective(BaseObjective):
         self.D, self.y = D, y
         self.lmbd = self.reg * get_lambda_max(D, y)
 
-    def get_one_solution(self):
+    def get_one_result(self):
         n_times, n_samples = self.y.shape
         n_atoms, kernel_size = self.D.shape
-        return np.zeros((n_atoms, n_times - kernel_size + 1, n_samples))
+        return dict(
+            theta=np.zeros((n_atoms, n_times - kernel_size + 1, n_samples))
+        )
 
     def get_objective(self):
         "Returns a dict to pass to the set_objective method of a solver."
         return dict(D=self.D, y=self.y, lmbd=self.lmbd, positive=self.positive)
 
-    def compute(self, theta):
+    def evaluate_result(self, theta):
         """Compute the objective value given the output theta of a solver.
 
         Parameters
