@@ -11,7 +11,7 @@ class Solver(BaseSolver):
     name = 'sporco'
 
     install_cmd = 'conda'
-    requirements = ['pip:sporco']
+    requirements = ['fftw', 'pip:sporco']
 
     stopping_criterion = SufficientProgressCriterion(
         patience=10, strategy='iteration'
